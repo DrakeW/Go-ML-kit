@@ -39,19 +39,16 @@ func trainDataAtIdices(indices []int, trainData *mat64.Dense) *mat64.Dense {
 func matrixMean(m *mat64.Dense, axis Axis) *mat64.Vector {
 	r, c := m.Dims()
 	var vec *mat64.Vector
-	temp := make([]float64, c*r, c*r)
 	if axis == ROW {
 		vec = mat64.NewVector(c, make([]float64, c, c))
 		for i := 0; i < r; i++ {
-			mat64.Row(temp[i*c:(i+1)*c], i, m)
-			vec.AddVec(vec, mat64.NewVector(c, temp[i*c:(i+1)*c]))
+			vec.AddVec(vec, m.RowView(i))
 		}
 		vec.ScaleVec(1/(float64(r)), vec)
 	} else if axis == COL {
 		vec = mat64.NewVector(c, make([]float64, r, r))
 		for i := 0; i < r; i++ {
-			mat64.Col(temp[i*r:(i+1)*r], i, m)
-			vec.AddVec(vec, mat64.NewVector(c, temp[i*r:(i+1)*r]))
+			vec.AddVec(vec, m.ColView(i))
 		}
 		vec.ScaleVec(1/(float64(c)), vec)
 	}
