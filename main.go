@@ -7,9 +7,9 @@ import (
 )
 
 type Classifier interface {
-	Fit(X mat64.Matrix, Y mat64.Vector)
-	Predict(X mat64.Matrix)
-	Score(X mat64.Matrix)
+	Fit(X *mat64.Matrix, Y *mat64.Vector)
+	Predict(X *mat64.Matrix) *mat64.Vector
+	Score(X *mat64.Matrix) float64
 }
 
 func main() {

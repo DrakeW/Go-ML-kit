@@ -1,14 +1,19 @@
 package main
 
-import "github.com/gonum/matrix/mat64"
+import (
+	"github.com/gonum/stat"
+	"github.com/gonum/matrix/mat64"
+)
 
 type Axis int
 
 const (
-	ROW Axis = 0
-	COL Axis = 1
+	ROW Axis = 1
+	COL Axis = 0
 )
 
+
+// Linear Discriminant Analysis classifier
 type LDA struct {
 	Means  []float64
 	Cov    *mat64.Dense
@@ -55,19 +60,39 @@ func matrixMean(m *mat64.Dense, axis Axis) *mat64.Vector {
 	return vec
 }
 
-// return cov matrix, mean for each class, prior for each class
-func getGaussianParams(trainData *mat64.Dense, trainLabs []float64, allLabs []float64) (*mat64.Dense, []*mat64.Vector, *mat64.Vector) {
+func calcCovMat(m *mat64.Dense) *mat64.SymDense {
+	_, c := m.Dims()
+	covMat := mat64.NewSymDense(c, make([]float64, c*c, c*c))
+	stat.CovarianceMatrix(covMat, m, nil)
+	return covMat
+}
+
+// return cov matrices, mean for each class, prior for each class
+func getGaussianParams(trainData *mat64.Dense, trainLabs []float64, allLabs []float64) ([]*mat64.SymDense, []*mat64.Vector, *mat64.Vector) {
 	numClasses := len(allLabs)
-	covMatrices := make([]*mat64.Dense, numClasses, numClasses)
+	covMatrices := make([]*mat64.SymDense, numClasses, numClasses)
 	means := make([]*mat64.Vector, numClasses, numClasses)
-	priros := make([]float64, numClasses, numClasses)
+	priors := make([]float64, numClasses, numClasses)
 	for i := 0; i < numClasses; i++ {
 		idx := indicesOf(allLabs[i], trainLabs)
 		data := trainDataAtIdices(idx, trainData)
 
-		priros = append(priros, float64(len(idx))/float64(len(trainLabs)))
+		priors = append(priors, float64(len(idx))/float64(len(trainLabs)))
 		means = append(means, matrixMean(data, ROW))
-		// TODO: calculate cov matrix
+		covMatrices = append(covMatrices, calcCovMat(data))
 	}
-	return nil, nil, nil
+	priors_vec := mat64.NewVector(numClasses, priors)
+	return covMatrices, means, priors_vec
+}
+
+// TODO: write function of LDA that confomrs to classifier interface
+
+func (l *LDA) Fit(X *mat64.Matrix, Y *mat64.Vector) {}
+
+func (l *LDA) Predict(X *mat64.Matrix) *mat64.Vector {
+	return nil
+}
+
+func (l *LDA) Score(X *mat64.Matrix) float64 {
+	return 0
 }
